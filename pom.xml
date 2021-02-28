@@ -20,7 +20,8 @@
     <encoding>UTF-8</encoding>
     <scala.version>2.13.2</scala.version>
     <scala.compat.version>2.13</scala.compat.version>
-    <cats.version>2.3.0</cats.version>
+    <cats.version>2.4.2</cats.version>
+    <cats.effect.version>2.3.3</cats.effect.version>
     <cats.version.old>2.0.0</cats.version.old>
   </properties>
 
@@ -76,7 +77,7 @@
     <dependency>
       <groupId>org.typelevel</groupId>
       <artifactId>cats-effect_${scala.compat.version}</artifactId>
-      <version>${cats.version.old}</version>
+      <version>${cats.effect.version}</version>
     </dependency>
     <dependency>
       <groupId>co.fs2</groupId>
