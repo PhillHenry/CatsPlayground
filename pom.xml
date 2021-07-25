@@ -22,6 +22,7 @@
     <scala.compat.version>2.13</scala.compat.version>
     <cats.version>2.6.1</cats.version>
     <cats.effect.version>3.1.1</cats.effect.version>
+    <fs2.version>3.0.6</fs2.version>
   </properties>
 
   <dependencies>
@@ -52,11 +53,6 @@
       <groupId>org.typelevel</groupId>
       <artifactId>cats-laws_${scala.compat.version}</artifactId>
       <version>${cats.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.typelevel</groupId>
-      <artifactId>cats-laws_${scala.compat.version}</artifactId>
-      <version>${cats.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -82,12 +78,12 @@
     <dependency>
       <groupId>co.fs2</groupId>
       <artifactId>fs2-core_${scala.compat.version}</artifactId>
-      <version>2.0.1</version>
+      <version>${fs2.version}</version>
     </dependency>
     <dependency>
       <groupId>co.fs2</groupId>
       <artifactId>fs2-io_${scala.compat.version}</artifactId>
-      <version>2.0.1</version>
+      <version>${fs2.version}</version>
     </dependency>
     <dependency>
       <groupId>com.ovoenergy</groupId>
