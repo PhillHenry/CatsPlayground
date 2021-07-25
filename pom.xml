@@ -133,7 +133,7 @@
                 <!--<arg>-make:transitive</arg>-->
                 <arg>-Ymacro-annotations</arg>
                 <arg>-Ywarn-value-discard</arg>
-		<arg>-Xfatal-warnings</arg>
+		        <arg>-Xfatal-warnings</arg>
                 <arg>-dependencyfile</arg>
                 <arg>${project.build.directory}/.scala_dependencies</arg>
               </args>
