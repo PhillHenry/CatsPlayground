@@ -20,9 +20,8 @@
     <encoding>UTF-8</encoding>
     <scala.version>2.13.2</scala.version>
     <scala.compat.version>2.13</scala.compat.version>
-    <cats.version>2.4.2</cats.version>
-    <cats.effect.version>2.3.3</cats.effect.version>
-    <cats.version.old>2.0.0</cats.version.old>
+    <cats.version>2.6.1</cats.version>
+    <cats.effect.version>3.1.1</cats.effect.version>
   </properties>
 
   <dependencies>
@@ -56,8 +55,9 @@
     </dependency>
     <dependency>
       <groupId>org.typelevel</groupId>
-      <artifactId>cats-effect-laws_${scala.compat.version}</artifactId>
-      <version>${cats.version.old}</version>
+      <artifactId>cats-laws_${scala.compat.version}</artifactId>
+      <version>${cats.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.typelevel</groupId>
