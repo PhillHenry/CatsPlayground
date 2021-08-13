@@ -12,7 +12,13 @@ object WhoWins extends IOApp {
     IO.println(s"Finished with $x")
 
   override def run(args: List[String]): IO[ExitCode] = {
-    val something = doSomething(1)
+    val something = for {
+      first <- doSomething(1).start
+      _ <- first.cancel
+      second <- doSomething(2)
+    } yield {
+      println("finished")
+    }
     something.as(ExitCode.Success)
   }
 }
