@@ -7,11 +7,19 @@ import cats.implicits._
 
 object WhoWins extends IOApp {
 
-  def javaSleep(ms: Long = 2000) = IO {
+  def javaCode(ms: Long = 2000) = {
     println(s"About to sleep $ms ms")
     Thread.sleep(ms)
     println(s"Finished sleeping $ms ms")
-  }.onCancel(IO.println(s"Sleeping $ms cancelled")).onError(t => IO { t.printStackTrace() })
+  }
+
+  def javaSleep(ms: Long = 2000): IO[Unit] = logTermination(IO(javaCode(ms)), ms)
+
+  def javaSleepInterruptible(ms: Long = 2000): IO[Unit]
+    = logTermination(IO.interruptible(many=true)(javaCode(ms)), ms)
+
+  def logTermination(io: IO[Unit], ms: Long = 2000): IO[Unit]
+    = io.onCancel(IO.println(s"Sleeping $ms cancelled")).onError(t => IO { t.printStackTrace() })
 
   def print(x: Any): IO[Unit] =
     IO.println(s"$x").onCancel(IO.println(s"$x cancelled")).onError(t => IO {t.printStackTrace()})
@@ -26,10 +34,12 @@ object WhoWins extends IOApp {
       first <- doSomething(1).start
       _ <- first.cancel
       javaSleepFibre <- javaSleep(1999).start
+      javaInterruptibleFibre <- javaSleepInterruptible(2001).start
       interruptible <- IO.interruptible(many = true)(javaSleep()).start
       second <- doSomething(2)
       _ <- javaSleepFibre.cancel
-//      _ <- interruptible.cancel
+      _ <- interruptible.cancel
+      _ <- javaInterruptibleFibre.cancel
     } yield {
       println("finished")
     }
