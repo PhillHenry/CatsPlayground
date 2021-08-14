@@ -21,7 +21,7 @@
     <scala.version>2.13.2</scala.version>
     <scala.compat.version>2.13</scala.compat.version>
     <cats.version>2.6.1</cats.version>
-    <cats.effect.version>3.1.1</cats.effect.version>
+    <cats.effect.version>3.2.2</cats.effect.version>
     <fs2.version>3.0.6</fs2.version>
   </properties>
 
@@ -37,12 +37,6 @@
       <artifactId>scala-library</artifactId>
       <version>${scala.version}</version>
     </dependency>
-<!--    <dependency>-->
-<!--      <groupId>junit</groupId>-->
-<!--      <artifactId>junit</artifactId>-->
-<!--      <version>4.11</version>-->
-<!--      <scope>test</scope>-->
-<!--    </dependency>-->
     <dependency>
       <groupId>org.scalatest</groupId>
       <artifactId>scalatest_${scala.compat.version}</artifactId>
