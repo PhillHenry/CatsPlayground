@@ -1,9 +1,10 @@
 package uk.co.odinconsultants.fp.cats.relalg
 
 import cats.effect.IO
+import munit.CatsEffectSuite
 import org.scalatest.WordSpec
 
-class RelationalAlgebraSpec extends /*CatsEffectSuite*/ {
+class RelationalAlgebraSpec extends CatsEffectSuite {
 
   case class X(id: Int, value: String)
 
@@ -25,8 +26,8 @@ class RelationalAlgebraSpec extends /*CatsEffectSuite*/ {
     db.innerJoin(join)
   }
 
-//  test("HelloWorld returns status code 200") {
-//    assertIO(retHelloWorld.map(_.status) ,Status.Ok)
-//  }
+  test("nothing in particular") {
+    assertIO(IO("test"), "test")
+  }
 
 }
