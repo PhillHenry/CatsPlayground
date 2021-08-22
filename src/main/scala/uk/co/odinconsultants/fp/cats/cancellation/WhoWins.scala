@@ -34,6 +34,9 @@ object WhoWins extends IOApp {
   def javaSleepInterruptible(ms: Long): IO[Unit]
     = logTermination(IO.interruptible(many=true)(javaCode(ms)), s"IO.interruptible Thread.sleep($ms) cancelled")
 
+  def javaSleepNonInterruptible(ms: Long): IO[Unit]
+    = logTermination(IO(javaCode(ms)), s"IO.interruptible Thread.sleep($ms) cancelled")
+
   def logTermination(io: IO[Unit], msg: String): IO[Unit]
     = io.onCancel(IO.println(msg)).onError(t => IO { t.printStackTrace() })
 
@@ -54,9 +57,11 @@ object WhoWins extends IOApp {
       _ <- first.cancel
       javaSleepFibre <- javaSleep(1999).start
       javaInterruptibleFibre <- javaSleepInterruptible(2001).start
+      javaNonInterruptibleFibre <- javaSleepNonInterruptible(2000).start
       _ <- doSomething("plain IO.sleep")
       _ <- javaSleepFibre.cancel // can't seem to cancel this
       _ <- javaInterruptibleFibre.cancel
+      _ <- javaNonInterruptibleFibre.cancel // interrupting this makes no difference
     } yield {
       javaLog("Terminating...")
     }
