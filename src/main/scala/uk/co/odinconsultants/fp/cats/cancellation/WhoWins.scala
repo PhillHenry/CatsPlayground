@@ -29,9 +29,9 @@ object WhoWins extends IOApp {
     javaLog(s"Finished Thread.sleep($ms)")
   }
 
-  def javaSleep(ms: Long = 2000): IO[Unit] = logTermination(IO(javaCode(ms)), s"Thread.sleep($ms) cancelled")
+  def javaSleep(ms: Long): IO[Unit] = logTermination(IO(javaCode(ms)), s"Thread.sleep($ms) cancelled")
 
-  def javaSleepInterruptible(ms: Long = 2000): IO[Unit]
+  def javaSleepInterruptible(ms: Long): IO[Unit]
     = logTermination(IO.interruptible(many=true)(javaCode(ms)), s"IO.interruptible Thread.sleep($ms) cancelled")
 
   def logTermination(io: IO[Unit], msg: String): IO[Unit]
@@ -43,7 +43,7 @@ object WhoWins extends IOApp {
   def doSomething(x: Any): IO[Unit] = {
     val io = print(s"Starting '$x'") >>
       IO.sleep(1.seconds).onCancel(IO.println(s"IO.sleep($x) cancelled")) >>
-      print(s"Finished '$x''")
+      print(s"Finished '$x'")
 
     io.onCancel(print(s"'$x' cancelled")) // note the onCancel needs to be on the last IO in the chain
   }
@@ -54,9 +54,9 @@ object WhoWins extends IOApp {
       _ <- first.cancel
       javaSleepFibre <- javaSleep(1999).start
       javaInterruptibleFibre <- javaSleepInterruptible(2001).start
-      interruptible <- IO.interruptible(many = true)(javaSleep()).start
+      interruptible <- IO.interruptible(many=true)(javaSleep(2000)).start // this never seems to start
       _ <- doSomething("plain IO.sleep")
-      _ <- javaSleepFibre.cancel
+      _ <- javaSleepFibre.cancel // can't seem to cancel this
       _ <- interruptible.cancel
       _ <- javaInterruptibleFibre.cancel
     } yield {
