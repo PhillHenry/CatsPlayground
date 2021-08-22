@@ -24,10 +24,13 @@ object WhoWins extends IOApp {
   def print(x: Any): IO[Unit] =
     IO.println(s"$x").onCancel(IO.println(s"$x cancelled")).onError(t => IO {t.printStackTrace()})
 
-  def doSomething(x: Int): IO[Unit] =
-    print(s"Starting $x") >>
+  def doSomething(x: Int): IO[Unit] = {
+    val io = print(s"Starting $x") >>
     IO.sleep(1.seconds).onCancel(IO.println(s"$x sleep cancelled")) >>
     print(s"Finished $x")
+
+    io.onCancel(print(s"$x cancelled")) // note the onCancel needs to be on the last IO in the chain
+  }
 
   override def run(args: List[String]): IO[ExitCode] = {
     val something: IO[Any] = for {
