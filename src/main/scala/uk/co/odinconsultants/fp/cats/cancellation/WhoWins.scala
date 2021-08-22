@@ -23,7 +23,7 @@ object WhoWins extends IOApp {
     println(message(x))
   }
 
-  def javaCode(ms: Long = 2000): Unit = {
+  def javaCode(ms: Long): Unit = {
     javaLog(s"About to Thread.sleep($ms)")
     Thread.sleep(ms)
     javaLog(s"Finished Thread.sleep($ms)")
@@ -54,10 +54,8 @@ object WhoWins extends IOApp {
       _ <- first.cancel
       javaSleepFibre <- javaSleep(1999).start
       javaInterruptibleFibre <- javaSleepInterruptible(2001).start
-      interruptible <- IO.interruptible(many=true)(javaSleep(2000)).start // this never seems to start
       _ <- doSomething("plain IO.sleep")
       _ <- javaSleepFibre.cancel // can't seem to cancel this
-      _ <- interruptible.cancel
       _ <- javaInterruptibleFibre.cancel
     } yield {
       javaLog("Terminating...")
