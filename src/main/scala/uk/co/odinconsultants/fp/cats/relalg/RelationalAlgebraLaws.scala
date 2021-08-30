@@ -1,5 +1,7 @@
 package uk.co.odinconsultants.fp.cats.relalg
 
+import cats.{Applicative, Traverse}
+
 case class Join[F[_], C, X, Y](xs: F[X], ys: F[Y], conditions: List[C])
 
 trait RelationalAlgebra[F[_], C] {

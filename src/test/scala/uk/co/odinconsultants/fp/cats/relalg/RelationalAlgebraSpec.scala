@@ -21,8 +21,13 @@ class RelationalAlgebraSpec extends CatsEffectSuite {
   val selectX = IO(Xs)
   val selectY = IO(Ys)
 
-  def innerJoinTest(db: RelationalAlgebra[IO, C]) = {
+  def innerJoinTest(db: RelationalAlgebra[IO, C]): IO[(List[X], List[Y])] = {
     val join = Join(selectX, selectY, List(primaryKeysMatch))
+    db.innerJoin(join)
+  }
+
+  def innerListJoinTest(db: RelationalAlgebra[List, C]): List[(X, Y)] = {
+    val join: Join[List, C, X, Y] = Join(Xs, Ys, List(primaryKeysMatch))
     db.innerJoin(join)
   }
 
