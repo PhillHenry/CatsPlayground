@@ -14,6 +14,14 @@ trait Random[F[_]] {
 object Random {
   def apply[F[_]](implicit instance : Random[F]) : Random[F] = instance
 
+  /**
+   * This is needed if we want to instantiate Category with, say, IO that knows nothing about Random.
+   * Note that the object `Random` must be the same name as the trait `Random` or you'll get:
+could not find implicit value for evidence parameter of type uk.co.odinconsultants.fp.cats.gvolpe.Random_[cats.effect.IO]
+    val liveCategories: LiveCategories[IO] = new LiveCategories[IO]()
+   * Plus, they must be in the same file or you'll get:
+Companions 'trait Random' and 'object Random' must be defined in same file:
+   */
   implicit def syncInstance[F[_]: Sync]: Random[F] =
     new Random[F] {
       def bool: F[Boolean] = int.map(_ % 2 === 0)
