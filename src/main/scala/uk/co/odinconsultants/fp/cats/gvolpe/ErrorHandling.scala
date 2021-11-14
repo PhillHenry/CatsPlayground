@@ -53,5 +53,8 @@ the plugin is context-applied
 
 
 object ErrorHandling extends IOApp {
-  override def run(args: List[String]): IO[ExitCode] = ???
+  override def run(args: List[String]): IO[ExitCode] = {
+    val liveCategories: LiveCategories[IO] = new LiveCategories[IO]()
+    liveCategories.maybeFindAll.map(x => println(x)).as(ExitCode.Success)
+  }
 }
