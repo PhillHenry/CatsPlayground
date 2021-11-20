@@ -12,6 +12,10 @@ trait Random[F[_]] {
 }
 
 object Random {
+  /**
+   * This is needed for syntax like:
+  val F = Random[F]
+   */
   def apply[F[_]](implicit instance : Random[F]) : Random[F] = instance
 
   /**
