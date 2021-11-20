@@ -23,12 +23,18 @@ object MySets {
     (xs.map(x => g(f(x))), xs.map(f).map(g))
   }
 
+  val f: F = x => new OddEquals(x.length, x)
+  val g: G = _.y
+
   def main(args: Array[String]): Unit = {
-    val f: F = x => new OddEquals(x.length, x)
-    val g: G = _.y
-    val xs = Set("hello", "world")
+    checkFunctorLaws(Set("hello", "world"))
+    checkFunctorLaws(List("hello", "world"))
+  }
+
+  private def checkFunctorLaws(xs: Iterable[Output]) = {
     val (x, y) = functorLaw(xs, f, g)
     println(x)
     println(y)
+    println(s"Are functor laws obeyed? ${x == y}")
   }
 }
