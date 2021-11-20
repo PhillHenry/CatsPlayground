@@ -31,10 +31,11 @@ object MySets {
     checkFunctorLaws(List("hello", "world"))
   }
 
-  private def checkFunctorLaws(xs: Iterable[Output]) = {
-    val (x, y) = functorLaw(xs, f, g)
-    println(x)
-    println(y)
-    println(s"Are functor laws obeyed? ${x == y}")
+  private def checkFunctorLaws(iterable: Iterable[Output]) = {
+    val (xs, ys) = functorLaw(iterable, f, g)
+    println(s"xs = ${xs}")
+    println(s"ys = ${ys}")
+    println(s"Are functor laws obeyed? ${xs == ys}")
+    println()
   }
 }
