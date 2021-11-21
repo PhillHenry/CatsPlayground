@@ -4,15 +4,20 @@ import cats.{Applicative, Apply, Foldable, UnorderedFoldable}
 import cats.implicits._
 import cats.kernel.CommutativeMonoid
 
-/**
- * Note that this doesn't work for Set because Applicative implies Monad which Set is not.
- */
-class UnorderedExamples[T[_]: Applicative: UnorderedFoldable] {
-  def xs: T[Int] = Applicative[T].pure(1)
-  def folded(implicit ev: CommutativeMonoid[Int]) = {
+class UnorderedExamples[T[_]: UnorderedFoldable](xs: T[Int]) {
+  def folded(implicit ev: CommutativeMonoid[Int]): Int = {
     val folder = UnorderedFoldable[T]
     folder.unorderedFold(xs)
   }
+  override def toString: String = s"${xs} unordered foldable -> ${folded}"
+}
+class OrderedExamples[T[_]: Foldable](xs: T[Int]) {
+  def folded: Int = {
+    val folder = Foldable[T]
+    folder.unorderedFold(xs)
+  }
+
+  override def toString: String = s"${xs} ordered foldable -> ${folded}"
 }
 
 object CatSets {
@@ -20,9 +25,10 @@ object CatSets {
   def main(args: Array[String]): Unit = {
     unorderedSetFolding
     orderedListFolding
-    val unorderedList = new UnorderedExamples[List]
-    println(unorderedList.xs)
-    println(unorderedList.folded)
+    println(new UnorderedExamples(List(1, 2, 3)))
+    println(new UnorderedExamples(Set(1, 2, 3)))
+    println(new OrderedExamples(List(1, 2, 3)))
+//    println(new OrderedExamples(Set(1, 2, 3))) // "No Foldable[Set]"
   }
 
 
