@@ -1,14 +1,28 @@
 package uk.co.odinconsultants.fp.cats.structures
 
-import cats.{Foldable, UnorderedFoldable}
+import cats.{Applicative, Apply, Foldable, UnorderedFoldable}
 import cats.implicits._
+import cats.kernel.CommutativeMonoid
+
+/**
+ * Note that this doesn't work for Set because Applicative implies Monad which Set is not.
+ */
+class UnorderedExamples[T[_]: Applicative: UnorderedFoldable] {
+  def xs: T[Integer] = Applicative[T].pure(1)
+  def folded = {
+    val folder = UnorderedFoldable[T]
+//    folder.unorderedFold(xs)
+  }
+}
 
 object CatSets {
 
   def main(args: Array[String]): Unit = {
     unorderedSetFolding
-
     orderedListFolding
+    val unorderedList = new UnorderedExamples[List]
+    println(unorderedList.xs)
+    println(unorderedList.folded)
   }
 
 
