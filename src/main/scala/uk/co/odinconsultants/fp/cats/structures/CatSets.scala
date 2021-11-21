@@ -4,7 +4,11 @@ import cats.implicits._
 import cats.kernel.{CommutativeMonoid, Monoid}
 import cats.{Foldable, UnorderedFoldable}
 
-class UnorderedExamples[T[_]: UnorderedFoldable, A: CommutativeMonoid](xs: T[A]) {
+trait OrderingExample[A] {
+  def folded: A
+}
+
+class UnorderedExamples[T[_]: UnorderedFoldable, A: CommutativeMonoid](xs: T[A]) extends OrderingExample[A] {
   def folded: A = {
     val folder = UnorderedFoldable[T]
     folder.unorderedFold(xs)
@@ -12,7 +16,7 @@ class UnorderedExamples[T[_]: UnorderedFoldable, A: CommutativeMonoid](xs: T[A])
   override def toString: String = s"${xs} unordered foldable -> ${folded}"
 }
 
-class OrderedExamples[T[A]: Foldable, A: Monoid](xs: T[A]) {
+class OrderedExamples[T[A]: Foldable, A: Monoid](xs: T[A]) extends OrderingExample[A] {
   def folded: A = {
     val folder = Foldable[T]
     folder.fold(xs)
@@ -26,10 +30,13 @@ object CatSets {
   def main(args: Array[String]): Unit = {
     unorderedSetFolding
     orderedListFolding
-    println(new UnorderedExamples(List(1, 2, 3)))
-    println(new UnorderedExamples(Set(1, 2, 3)))
-    println(new OrderedExamples(List(1, 2, 3)))
-//    println(new OrderedExamples(Set(1, 2, 3))) // "No Foldable[Set]"
+    val examples = List(
+      new UnorderedExamples(List(1, 2, 3)),
+      new UnorderedExamples(Set(1, 2, 3)),
+      new OrderedExamples(List(1, 2, 3))
+      // new OrderedExamples(Set(1, 2, 3))) // "No Foldable[Set]"
+    )
+    examples.foreach(println)
   }
 
 
