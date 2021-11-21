@@ -8,10 +8,10 @@ import cats.kernel.CommutativeMonoid
  * Note that this doesn't work for Set because Applicative implies Monad which Set is not.
  */
 class UnorderedExamples[T[_]: Applicative: UnorderedFoldable] {
-  def xs: T[Integer] = Applicative[T].pure(1)
-  def folded = {
+  def xs: T[Int] = Applicative[T].pure(1)
+  def folded(implicit ev: CommutativeMonoid[Int]) = {
     val folder = UnorderedFoldable[T]
-//    folder.unorderedFold(xs)
+    folder.unorderedFold(xs)
   }
 }
 
