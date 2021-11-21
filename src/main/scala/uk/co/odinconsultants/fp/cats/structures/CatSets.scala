@@ -1,20 +1,21 @@
 package uk.co.odinconsultants.fp.cats.structures
 
-import cats.{Applicative, Apply, Foldable, UnorderedFoldable}
 import cats.implicits._
-import cats.kernel.CommutativeMonoid
+import cats.kernel.{CommutativeMonoid, Monoid}
+import cats.{Foldable, UnorderedFoldable}
 
-class UnorderedExamples[T[_]: UnorderedFoldable](xs: T[Int]) {
-  def folded(implicit ev: CommutativeMonoid[Int]): Int = {
+class UnorderedExamples[T[_]: UnorderedFoldable, A: CommutativeMonoid](xs: T[A]) {
+  def folded: A = {
     val folder = UnorderedFoldable[T]
     folder.unorderedFold(xs)
   }
   override def toString: String = s"${xs} unordered foldable -> ${folded}"
 }
-class OrderedExamples[T[_]: Foldable](xs: T[Int]) {
-  def folded: Int = {
+
+class OrderedExamples[T[A]: Foldable, A: Monoid](xs: T[A]) {
+  def folded: A = {
     val folder = Foldable[T]
-    folder.unorderedFold(xs)
+    folder.fold(xs)
   }
 
   override def toString: String = s"${xs} ordered foldable -> ${folded}"
