@@ -32,7 +32,7 @@ object WhoWins extends IOApp {
   def javaSleep(ms: Long): IO[Unit] = logTermination(IO(javaCode(ms)), s"Thread.sleep($ms) cancelled")
 
   def javaSleepInterruptible(ms: Long): IO[Unit]
-    = logTermination(IO.interruptible(many=true)(javaCode(ms)), s"IO.interruptible Thread.sleep($ms) cancelled")
+    = logTermination(IO.interruptibleMany(javaCode(ms)), s"IO.interruptible Thread.sleep($ms) cancelled")
 
   def javaSleepNonInterruptible(ms: Long): IO[Unit]
     = logTermination(IO(javaCode(ms)), s"IO.interruptible Thread.sleep($ms) cancelled")

@@ -20,8 +20,8 @@
     <encoding>UTF-8</encoding>
     <scala.version>2.13.2</scala.version>
     <scala.compat.version>2.13</scala.compat.version>
-    <cats.version>2.6.1</cats.version>
-    <cats.effect.version>3.2.2</cats.effect.version>
+    <cats.version>2.7.0</cats.version>
+    <cats.effect.version>3.3.12</cats.effect.version>
     <fs2.version>3.0.6</fs2.version>
   </properties>
 
@@ -45,19 +45,19 @@
     </dependency>
     <dependency>
       <groupId>org.typelevel</groupId>
-      <artifactId>cats-laws_${scala.compat.version}</artifactId>
-      <version>${cats.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.typelevel</groupId>
       <artifactId>cats-testkit_${scala.compat.version}</artifactId>
       <version>${cats.version}</version>
     </dependency>
     <dependency>
+      <groupId>com.disneystreaming</groupId>
+      <artifactId>weaver-cats_${scala.compat.version}</artifactId>
+      <version>0.7.12</version>
+    </dependency>
+    <dependency>
       <groupId>org.typelevel</groupId>
-      <artifactId>cats-free_${scala.compat.version}</artifactId>
-      <version>${cats.version}</version>
+      <artifactId>cats-effect-testkit_${scala.compat.version}</artifactId>
+      <version>${cats.effect.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.typelevel</groupId>
