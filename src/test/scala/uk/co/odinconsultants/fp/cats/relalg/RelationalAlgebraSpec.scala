@@ -2,7 +2,6 @@ package uk.co.odinconsultants.fp.cats.relalg
 
 import cats.effect.IO
 import munit.CatsEffectSuite
-import org.scalatest.WordSpec
 
 class RelationalAlgebraSpec extends CatsEffectSuite {
 

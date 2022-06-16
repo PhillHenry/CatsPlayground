@@ -16,7 +16,7 @@ class UnorderedExamples[T[_]: UnorderedFoldable, A: CommutativeMonoid](xs: T[A])
   override def toString: String = s"${xs} unordered foldable -> ${folded}"
 }
 
-class OrderedExamples[T[A]: Foldable, A: Monoid](xs: T[A]) extends OrderingExample[A] {
+class OrderedExamples[T[_]: Foldable, A: Monoid](xs: T[A]) extends OrderingExample[A] {
   def folded: A = {
     val folder = Foldable[T]
     folder.fold(xs)
