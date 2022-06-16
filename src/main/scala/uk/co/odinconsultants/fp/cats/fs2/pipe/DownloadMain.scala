@@ -19,8 +19,8 @@ object DownloadMain extends IOApp {
     val input: InputStream = new URL(spec).openConnection.getInputStream
     val output: Pipe[IO, Byte, INothing] = Files[IO].writeAll(Paths.get(filename))
     val stream: fs2.Stream[IO, Byte] = io.readInputStream[IO](IO(input), 4096, closeAfterUse = true)
-//    val tick = Stream.eval(IO(print("."))).repeat
-    stream.through(output)
+    val ticks = Stream.eval(IO(print("."))).repeat
+    stream.zipWith(ticks){case (byte, _) => byte}.through(output)
   }
 
 }
