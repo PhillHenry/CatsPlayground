@@ -19,12 +19,6 @@ object DownloadMain extends IOApp {
     print(".")
   } else IO.unit
 
-  def updating(ref: Ref[IO, Int]): IO[Int] = for {
-    x   <- ref.get
-    _   <- ref.update(_ + 1)
-    _   <- printTick(x)
-  } yield x + 1
-
   def download(spec: String, filename: String): fs2.Stream[IO, Unit] = {
     val input: InputStream = new URL(spec).openConnection.getInputStream
     val output: Pipe[IO, Byte, INothing] = Files[IO].writeAll(Paths.get(filename))
