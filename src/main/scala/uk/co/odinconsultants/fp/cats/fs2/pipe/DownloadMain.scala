@@ -31,7 +31,7 @@ object DownloadMain extends IOApp {
     val input: InputStream = new URL(spec).openConnection.getInputStream
     val output: Pipe[IO, Byte, INothing] = Files[IO].writeAll(Paths.get(filename))
     val stream: fs2.Stream[IO, Byte] = io.readInputStream[IO](IO(input), 4096, closeAfterUse = true)
-    val ticks = Stream.eval(Ref.of[IO, Int](0)).evalMap(updating)
+    val ticks = Stream.eval(Ref.of[IO, Int](0)).evalMapAccumulate(0){ (i, ref) => updating(ref).map((_, ref)) }
     stream.zipWith(ticks.repeat){case (byte, _) => byte}.through(output)
   }
 
