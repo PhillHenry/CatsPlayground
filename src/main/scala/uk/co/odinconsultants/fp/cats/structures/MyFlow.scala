@@ -44,10 +44,8 @@ class Prod[T[_]: Sync] extends Actions[T] {
 
   override def deploy(image: String): T[String] = delay(image, BAD_IMAGE)
 
-  private def delay(x: String, except: String): T[String] = {
-    implicit val T = implicitly[Sync[T]]
-    T.delay(realWork(x, except))
-  }
+  private def delay(x: String, except: String): T[String] =
+    implicitly[Sync[T]].delay(realWork(x, except))
 
   private def realWork(x: String, except: String): String =
     if (x == except)
@@ -59,13 +57,13 @@ class Prod[T[_]: Sync] extends Actions[T] {
 object MyFlow {
 
   def interpreter[T[_]: Applicative](actions: Actions[T]): UserCommand => CommandResult = _ match {
-    case DownloadCommand(urls: List[String]) =>
+    case DownloadCommand(urls) =>
       val downloads: List[T[String]] = for {
         url <- urls
       } yield actions.download(url)
       DownloadResult(downloads.sequence)
-    case DockerCommand(file)  => DockerResult(actions.docker(file))
-    case DeployCommand(image) => DeployResult(actions.deploy(image))
+    case DockerCommand(files)  => DockerResult(actions.docker(files))
+    case DeployCommand(image)  => DeployResult(actions.deploy(image))
   }
 
   def main(args: Array[String]): Unit = {
