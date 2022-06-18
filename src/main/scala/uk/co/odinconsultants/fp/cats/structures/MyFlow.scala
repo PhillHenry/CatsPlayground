@@ -67,9 +67,13 @@ object MyFlow {
   }
 
   def main(args: Array[String]): Unit = {
-
     val prod = new Prod[IO]
-    println(prod.download("good url"))
+    val interpret = interpreter(prod)
+    val commands = List(DownloadCommand(List("x", "y", prod.BAD_URL)))
+    val results = for {
+      command <- commands
+    } yield interpret(command)
+    println(results.mkString("\n"))
   }
 
 }
