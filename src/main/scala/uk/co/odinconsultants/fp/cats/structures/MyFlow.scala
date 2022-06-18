@@ -3,6 +3,7 @@ package uk.co.odinconsultants.fp.cats.structures
 import cats.{Applicative, ApplicativeError, Id, Monad, MonadError}
 import cats.implicits._
 import cats.effect.IO
+import cats.effect.kernel.Sync
 
 import scala.util.control.NoStackTrace
 
@@ -24,21 +25,27 @@ abstract class Actions[T[_]] {
   def deploy(image: String): T[String]
 }
 
-class Prod[T[_]: MonadError[*[_], Throwable]] extends Actions[T] {
+class Prod[T[_]: MonadError[*[_], Throwable]: Sync] extends Actions[T] {
   val BAD_URL   = "bad_url"
   val BAD_FILE  = "bad_file"
   val BAD_IMAGE = "bad_image"
 
-  override def download(url: String): T[String] = doExceptFor(url, BAD_URL)
+  implicit val T = implicitly[Sync[T]]
 
-  override def docker(file: String): T[String]  = doExceptFor(file, BAD_FILE)
+  override def download(url: String): T[String] = delay(url, BAD_URL)
 
-  override def deploy(image: String): T[String] = doExceptFor(image, BAD_IMAGE)
+  override def docker(file: String): T[String]  = delay(file, BAD_FILE)
 
-  private def doExceptFor(x: String, except: String): T[String] = if (x == except)
-    CommandError.raiseError[T, String]
-  else
-    x.pure[T]
+  override def deploy(image: String): T[String] = delay(image, BAD_IMAGE)
+
+  private def delay(x: String, except: String): T[String] = T.delay(realWork(x, except))
+
+  private def realWork(x: String, except: String): String = {
+    if (x == except)
+      throw new Exception()
+    else
+      x
+  }
 }
 
 object MyFlow {
