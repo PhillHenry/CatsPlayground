@@ -8,21 +8,21 @@ import cats.effect.kernel.Sync
 import scala.util.control.NoStackTrace
 
 sealed trait UserCommand
-case class DownloadCommand(urls: List[String]) extends UserCommand
-case class DockerCommand(file: List[String]) extends UserCommand
-case class DeployCommand(image: String) extends UserCommand
+case class DownloadCommand(urls: List[String])  extends UserCommand
+case class BuildCommand(file: List[String])     extends UserCommand
+case class DeployCommand(image: String)         extends UserCommand
 
 sealed trait CommandResult
 case class DownloadResult[T[_]](file: List[String]) extends CommandResult
-case class DockerResult[T[_]](image: String) extends CommandResult
-case class DeployResult[T[_]](message: String) extends CommandResult
+case class BuildResult[T[_]](image: String)         extends CommandResult
+case class DeployResult[T[_]](message: String)      extends CommandResult
 
 object CommandError extends NoStackTrace
 
 abstract class Actions[T[_]] {
-  def download(url: String): T[String]
+  def download(url: String):        T[String]
   def docker(files: List[String]):  T[String]
-  def deploy(image: String): T[String]
+  def deploy(image: String):        T[String]
 }
 
 class Prod[T[_]: Sync] extends Actions[T] {
@@ -35,7 +35,7 @@ class Prod[T[_]: Sync] extends Actions[T] {
   def merge(x: T[String], y: T[String]): T[String] = for {
     a <- x
     b <- y
-  } yield s"$a, $b"
+  } yield s"$a\n$b"
 
   override def docker(files: List[String]): T[String]  = {
     val actions = for { file <- files } yield delay(file, BAD_FILE)
@@ -69,7 +69,7 @@ class SingleThreadedInterpreter[T[_]: Applicative] extends Interpreter[T] {
         url <- urls
       } yield actions.download(url)
       downloads.sequence.map(DownloadResult(_))
-    case DockerCommand(files)  => actions.docker(files).map(DockerResult(_))
+    case BuildCommand(files)   => actions.docker(files).map(BuildResult(_))
     case DeployCommand(image)  => actions.deploy(image).map(DeployResult(_))
   }
 }
@@ -77,9 +77,10 @@ class SingleThreadedInterpreter[T[_]: Applicative] extends Interpreter[T] {
 object MyFlow  extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] = {
-    val prod = new Prod[IO]
+    val prod      = new Prod[IO]
     val interpret = new SingleThreadedInterpreter[IO].interpret(prod)
-    val commands = List(DownloadCommand(List("x", "y", prod.BAD_URL)))
+    val commands  = List(DownloadCommand(List("x", "y", prod.BAD_URL)))
+
     val results: List[IO[CommandResult]] = for {
       command <- commands
     } yield interpret(command)
