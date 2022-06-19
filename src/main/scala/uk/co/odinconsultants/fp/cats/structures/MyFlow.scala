@@ -72,22 +72,28 @@ class SingleThreadedInterpreter[T[_]: Applicative] extends Interpreter[T] {
     case BuildCommand(files)    => actions.build(files).map(BuildResult(_))
     case DeployCommand(image)   => actions.deploy(image).map(DeployResult(_))
   }
+
 }
 
 object MyFlow  extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] = {
-    val prod      = new Prod[IO]
-    val interpret = new SingleThreadedInterpreter[IO].interpret(prod)
-    val commands  = List(DownloadCommand(List("x", "y", prod.BAD_URL)))
+    val prod        = new Prod[IO]
+    val interpreter = new SingleThreadedInterpreter[IO]
+    val commands    = List(DownloadCommand(List("x", "y", prod.BAD_URL)))
 
-    val results: List[IO[CommandResult]] = for {
+    execute(prod, interpreter, commands).map(_ => ExitCode.Success)
+  }
+
+  private def execute[T[_]: Applicative](actions:      Actions[T],
+                                         interpreter:  Interpreter[T],
+                                         commands:     List[DownloadCommand]): T[Unit] = {
+    val interpret = interpreter.interpret(actions)
+    val results: List[T[CommandResult]] = for {
       command <- commands
     } yield interpret(command)
     results.sequence.map { xs =>
       println(xs.mkString("\n"))
-      ExitCode.Success
     }
   }
-
 }
