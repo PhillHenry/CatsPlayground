@@ -2,7 +2,7 @@ package uk.co.odinconsultants.fp.cats.structures
 
 import cats.{Applicative, ApplicativeError, FlatMap, Id, Monad, MonadError}
 import cats.implicits._
-import cats.effect.IO
+import cats.effect.{ExitCode, IO, IOApp}
 import cats.effect.kernel.Sync
 
 import scala.util.control.NoStackTrace
@@ -13,9 +13,9 @@ case class DockerCommand(file: List[String]) extends UserCommand
 case class DeployCommand(image: String) extends UserCommand
 
 sealed trait CommandResult
-case class DownloadResult[T[_]](file: T[List[String]]) extends CommandResult
-case class DockerResult[T[_]](image: T[String]) extends CommandResult
-case class DeployResult[T[_]](message: T[String]) extends CommandResult
+case class DownloadResult[T[_]](file: List[String]) extends CommandResult
+case class DockerResult[T[_]](image: String) extends CommandResult
+case class DeployResult[T[_]](message: String) extends CommandResult
 
 object CommandError extends NoStackTrace
 
@@ -48,32 +48,45 @@ class Prod[T[_]: Sync] extends Actions[T] {
     implicitly[Sync[T]].delay(realWork(x, except))
 
   private def realWork(x: String, except: String): String =
-    if (x == except)
+    if (x == except) {
+      println(s"Blowing up on $x")
       throw new Exception()
-    else
+    } else {
+      println(s"Returning $x")
       x
+    }
 }
 
-object MyFlow {
+abstract class Interpreter[T[_]] {
+  def interpret(actions: Actions[T]): UserCommand => T[CommandResult]
+}
 
-  def interpreter[T[_]: Applicative](actions: Actions[T]): UserCommand => CommandResult = _ match {
+class SingleThreadedInterpreter[T[_]: Applicative] extends Interpreter[T] {
+
+  override def interpret(actions: Actions[T]): UserCommand => T[CommandResult] = _ match {
     case DownloadCommand(urls) =>
       val downloads: List[T[String]] = for {
         url <- urls
       } yield actions.download(url)
-      DownloadResult(downloads.sequence)
-    case DockerCommand(files)  => DockerResult(actions.docker(files))
-    case DeployCommand(image)  => DeployResult(actions.deploy(image))
+      downloads.sequence.map(DownloadResult(_))
+    case DockerCommand(files)  => actions.docker(files).map(DockerResult(_))
+    case DeployCommand(image)  => actions.deploy(image).map(DeployResult(_))
   }
+}
 
-  def main(args: Array[String]): Unit = {
+object MyFlow  extends IOApp {
+
+  override def run(args: List[String]): IO[ExitCode] = {
     val prod = new Prod[IO]
-    val interpret = interpreter(prod)
+    val interpret = new SingleThreadedInterpreter[IO].interpret(prod)
     val commands = List(DownloadCommand(List("x", "y", prod.BAD_URL)))
-    val results = for {
+    val results: List[IO[CommandResult]] = for {
       command <- commands
     } yield interpret(command)
-    println(results.mkString("\n"))
+    results.sequence.map { xs =>
+      println(xs.mkString("\n"))
+      ExitCode.Success
+    }
   }
 
 }
