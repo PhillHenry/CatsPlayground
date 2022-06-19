@@ -63,14 +63,14 @@ abstract class Interpreter[T[_]] {
 
 class SingleThreadedInterpreter[T[_]: Applicative] extends Interpreter[T] {
 
-  override def interpret(actions: Actions[T]): UserCommand => T[CommandResult] = _ match {
-    case DownloadCommand(urls) =>
+  override def interpret(actions: Actions[T]): UserCommand => T[CommandResult] = {
+    case DownloadCommand(urls)  =>
       val downloads: List[T[String]] = for {
         url <- urls
       } yield actions.download(url)
       downloads.sequence.map(DownloadResult(_))
-    case BuildCommand(files)   => actions.docker(files).map(BuildResult(_))
-    case DeployCommand(image)  => actions.deploy(image).map(DeployResult(_))
+    case BuildCommand(files)    => actions.docker(files).map(BuildResult(_))
+    case DeployCommand(image)   => actions.deploy(image).map(DeployResult(_))
   }
 }
 
