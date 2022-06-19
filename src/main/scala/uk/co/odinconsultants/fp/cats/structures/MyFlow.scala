@@ -1,10 +1,11 @@
 package uk.co.odinconsultants.fp.cats.structures
 
-import cats.{Applicative, ApplicativeError, FlatMap, Id, Monad, MonadError}
+import cats.{Applicative, ApplicativeError, ApplicativeThrow, FlatMap, Id, Monad, MonadError}
 import cats.implicits._
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.effect.kernel.Sync
 
+import scala.annotation.tailrec
 import scala.util.control.NoStackTrace
 
 sealed trait UserCommand
@@ -45,12 +46,12 @@ class Prod[T[_]: Sync] extends Actions[T] {
   override def deploy(image: String): T[String] = delay(image, BAD_IMAGE)
 
   private def delay(x: String, except: String): T[String] =
-    implicitly[Sync[T]].delay(realWork(x, except))
+    implicitly[Sync[T]].blocking(realWork(x, except)) // in the real world, we'd probably use blocking over delay
 
   private def realWork(x: String, except: String): String =
     if (x == except) {
       println(s"Blowing up on $x")
-      throw new Exception()
+      throw CommandError
     } else {
       println(s"Returning $x")
       x
@@ -61,7 +62,7 @@ abstract class Interpreter[T[_]] {
   def interpret(actions: Actions[T]): UserCommand => T[CommandResult]
 }
 
-class SingleThreadedInterpreter[T[_]: Applicative] extends Interpreter[T] {
+class SequencedInterpreter[T[_]: Applicative] extends Interpreter[T] {
 
   override def interpret(actions: Actions[T]): UserCommand => T[CommandResult] = {
     case DownloadCommand(urls)  =>
@@ -73,13 +74,36 @@ class SingleThreadedInterpreter[T[_]: Applicative] extends Interpreter[T] {
     case DeployCommand(image)   => actions.deploy(image).map(DeployResult(_))
   }
 
+  def handleDownloads(downloads: List[T[String]]): T[List[String]] = downloads.sequence
+}
+
+class RetryingInterpreter[T[_]: ApplicativeThrow] extends Interpreter[T] {
+
+  @tailrec
+  private def retrying[A](fa: T[A],
+                          remaining: Int,
+                          f: Throwable => T[A]): T[A] = if (remaining <= 0) fa else retrying(fa
+    .handleErrorWith(f), remaining, f)
+
+  override def interpret(actions: Actions[T]): UserCommand => T[CommandResult] = {
+    case DownloadCommand(urls)  =>
+      val downloads: List[T[String]] = for {
+        url <- urls
+      } yield {
+        val f: Throwable => T[String] = _ => actions.download(url)
+        retrying(actions.download(url), 3, f)
+      }
+      downloads.sequence.map(DownloadResult(_))
+    case BuildCommand(files)    => actions.build(files).map(BuildResult(_))
+    case DeployCommand(image)   => actions.deploy(image).map(DeployResult(_))
+  }
 }
 
 object MyFlow  extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] = {
     val prod        = new Prod[IO]
-    val interpreter = new SingleThreadedInterpreter[IO]
+    val interpreter = new SequencedInterpreter[IO]
     val commands    = List(DownloadCommand(List("x", "y", prod.BAD_URL)))
 
     execute(prod, interpreter, commands).map(_ => ExitCode.Success)
