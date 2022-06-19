@@ -5,7 +5,6 @@ import cats.implicits._
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.effect.kernel.Sync
 
-import scala.annotation.tailrec
 import scala.util.control.NoStackTrace
 
 sealed trait UserCommand
@@ -77,25 +76,18 @@ class SequencedInterpreter[T[_]: Applicative] extends Interpreter[T] {
   def handleDownloads(downloads: List[T[String]]): T[List[String]] = downloads.sequence
 }
 
-class RetryingInterpreter[T[_]: ApplicativeThrow] extends Interpreter[T] {
+class RetryingInterpreter[T[_]: ApplicativeThrow] extends SequencedInterpreter[T] {
 
-  @tailrec
-  private def retrying[A](fa: T[A],
-                          remaining: Int,
-                          f: Throwable => T[A]): T[A] = if (remaining <= 0) fa else retrying(fa
-    .handleErrorWith(f), remaining, f)
+  def retrying[A](fa:        T[A],
+                  remaining: Int,
+                  f:         Throwable => T[A]): T[A] = if (remaining <= 0) fa
+                                                        else retrying(fa.handleErrorWith(f), remaining - 1, f)
 
-  override def interpret(actions: Actions[T]): UserCommand => T[CommandResult] = {
-    case DownloadCommand(urls)  =>
-      val downloads: List[T[String]] = for {
-        url <- urls
-      } yield {
-        val f: Throwable => T[String] = _ => actions.download(url)
-        retrying(actions.download(url), 3, f)
-      }
-      downloads.sequence.map(DownloadResult(_))
-    case BuildCommand(files)    => actions.build(files).map(BuildResult(_))
-    case DeployCommand(image)   => actions.deploy(image).map(DeployResult(_))
+  override def handleDownloads(downloads: List[T[String]]): T[List[String]] = {
+    val retried = for {
+      download <- downloads
+    } yield retrying(download, 3, _ => download)
+    retried.sequence
   }
 }
 
