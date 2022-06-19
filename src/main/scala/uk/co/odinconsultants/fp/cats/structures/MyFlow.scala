@@ -21,7 +21,7 @@ object CommandError extends NoStackTrace
 
 abstract class Actions[T[_]] {
   def download(url: String):        T[String]
-  def docker(files: List[String]):  T[String]
+  def build(files: List[String]):   T[String]
   def deploy(image: String):        T[String]
 }
 
@@ -37,7 +37,7 @@ class Prod[T[_]: Sync] extends Actions[T] {
     b <- y
   } yield s"$a\n$b"
 
-  override def docker(files: List[String]): T[String]  = {
+  override def build(files: List[String]): T[String]  = {
     val actions = for { file <- files } yield delay(file, BAD_FILE)
     actions.reduce((x, y) => merge(x, y))
   }
@@ -69,7 +69,7 @@ class SingleThreadedInterpreter[T[_]: Applicative] extends Interpreter[T] {
         url <- urls
       } yield actions.download(url)
       downloads.sequence.map(DownloadResult(_))
-    case BuildCommand(files)    => actions.docker(files).map(BuildResult(_))
+    case BuildCommand(files)    => actions.build(files).map(BuildResult(_))
     case DeployCommand(image)   => actions.deploy(image).map(DeployResult(_))
   }
 }
