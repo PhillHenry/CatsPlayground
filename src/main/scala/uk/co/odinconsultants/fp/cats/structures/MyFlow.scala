@@ -97,7 +97,7 @@ class RetryingInterpreter[T[_]: ApplicativeThrow] extends SequencedInterpreter[T
 class ParallelRetryingInterpreter[T[_]: ApplicativeThrow: Parallel]
     extends SequencedInterpreter[T] {
   override def handleDownloads(downloads: List[T[String]]): T[List[String]] =
-    InterpreterOps.retryingEach(downloads).parTraverse(identity)
+    InterpreterOps.retryingEach(downloads).parSequence
 }
 
 object InterpreterOps {
@@ -114,11 +114,6 @@ object InterpreterOps {
     action <- actions
   } yield retrying(action, 3, _ => action)
 
-  def inParallel[F[_], M[_], T[_]](actions: T[M[String]])(implicit
-      P: Parallel.Aux[M, F],
-      F: CommutativeApplicative[F],
-      Tutraverse: UnorderedTraverse[T],
-  ): M[T[String]] = actions.parUnorderedSequence
 }
 
 object MyFlow extends IOApp {
