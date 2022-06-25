@@ -1,20 +1,9 @@
 package uk.co.odinconsultants.fp.cats.structures
 
-import cats.{
-  Applicative,
-  ApplicativeError,
-  ApplicativeThrow,
-  CommutativeApplicative,
-  FlatMap,
-  Id,
-  Monad,
-  MonadError,
-  Parallel,
-  UnorderedTraverse,
-}
-import cats.implicits._
-import cats.effect.{ExitCode, IO, IOApp}
 import cats.effect.kernel.Sync
+import cats.effect.{ExitCode, IO, IOApp}
+import cats.implicits._
+import cats.{Applicative, ApplicativeThrow}
 
 import scala.util.control.NoStackTrace
 
@@ -74,30 +63,24 @@ abstract class Interpreter[T[_]] {
   def interpret(actions: Actions[T]): UserCommand => T[CommandResult]
 }
 
-class SequencedInterpreter[T[_]: Applicative] extends Interpreter[T] {
+object SequencedInterpreter {
+  type DownloadStrategy[T[_]] = List[T[String]] => T[List[String]]
+}
+
+class SequencedInterpreter[T[_]: Applicative](downloading: SequencedInterpreter.DownloadStrategy[T])
+    extends Interpreter[T] {
 
   override def interpret(actions: Actions[T]): UserCommand => T[CommandResult] = {
     case DownloadCommand(urls) =>
       val downloads: List[T[String]] = for {
         url <- urls
       } yield actions.download(url)
-      downloads.sequence.map(DownloadResult(_))
+      handleDownloads(downloads).map(DownloadResult(_))
     case BuildCommand(files)   => actions.build(files).map(BuildResult(_))
     case DeployCommand(image)  => actions.deploy(image).map(DeployResult(_))
   }
 
-  def handleDownloads(downloads: List[T[String]]): T[List[String]] = downloads.sequence
-}
-
-class RetryingInterpreter[T[_]: ApplicativeThrow] extends SequencedInterpreter[T] {
-  override def handleDownloads(downloads: List[T[String]]): T[List[String]] =
-    InterpreterOps.withRetries(downloads)
-}
-
-class ParallelRetryingInterpreter[T[_]: ApplicativeThrow: Parallel]
-    extends SequencedInterpreter[T] {
-  override def handleDownloads(downloads: List[T[String]]): T[List[String]] =
-    InterpreterOps.retryingEach(downloads).parSequence
+  def handleDownloads(downloads: List[T[String]]): T[List[String]] = downloading(downloads)
 }
 
 object InterpreterOps {
@@ -119,9 +102,10 @@ object InterpreterOps {
 object MyFlow extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] = {
-    val prod        = new Prod[IO]
-    val interpreter = new SequencedInterpreter[IO]
-    val commands    = List(DownloadCommand(List("x", "y", prod.BAD_URL)))
+    val prod                                          = new Prod[IO]
+    val fn: SequencedInterpreter.DownloadStrategy[IO] = _.sequence
+    val interpreter                                   = new SequencedInterpreter[IO](fn)
+    val commands                                      = List(DownloadCommand(List("x", "y", prod.BAD_URL)))
 
     execute(prod, interpreter, commands).map(_ => ExitCode.Success)
   }
