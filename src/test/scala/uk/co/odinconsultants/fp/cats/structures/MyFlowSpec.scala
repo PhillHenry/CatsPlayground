@@ -12,15 +12,18 @@ class MyFlowSpec extends CatsEffectSuite {
   test("First failure then retry succeeds") {
     val interpreter    = new RetryingInterpreter[IO]
     val externalSystem = new AtomicInteger(0)
-    val download       = mockCallToExternalSystem(externalSystem)
+    val download       = mockCallToExternalSystem(externalSystem, _ == 1)
     for {
       _ <- interpreter.handleDownloads(List(download))
     } yield assertEquals(externalSystem.get(), 2)
   }
 
-  private def mockCallToExternalSystem(externalSystem: AtomicInteger): IO[String] = IO {
+  private def mockCallToExternalSystem(
+      externalSystem: AtomicInteger,
+      when: Int => Boolean,
+  ): IO[String] = IO {
     val count = externalSystem.incrementAndGet()
     print(s"count = $count")
-    if (count == 1) throw CommandError else PASSED
+    if (when(count)) throw CommandError else PASSED
   }
 }
