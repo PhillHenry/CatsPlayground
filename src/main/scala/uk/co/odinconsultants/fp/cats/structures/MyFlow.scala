@@ -94,12 +94,10 @@ class RetryingInterpreter[T[_]: ApplicativeThrow] extends SequencedInterpreter[T
     InterpreterOps.withRetries(downloads)
 }
 
-class ParallelRetryingInterpreter[T[_]: ApplicativeThrow, F[_]](implicit
-    P: Parallel.Aux[T, F],
-    F: CommutativeApplicative[F],
-) extends SequencedInterpreter[T] {
+class ParallelRetryingInterpreter[T[_]: ApplicativeThrow: Parallel]
+    extends SequencedInterpreter[T] {
   override def handleDownloads(downloads: List[T[String]]): T[List[String]] =
-    InterpreterOps.inParallel(InterpreterOps.retryingEach(downloads))
+    InterpreterOps.retryingEach(downloads).parTraverse(identity)
 }
 
 object InterpreterOps {
