@@ -90,9 +90,16 @@ class SequencedInterpreter[T[_]: Applicative] extends Interpreter[T] {
 }
 
 class RetryingInterpreter[T[_]: ApplicativeThrow] extends SequencedInterpreter[T] {
-
   override def handleDownloads(downloads: List[T[String]]): T[List[String]] =
     InterpreterOps.withRetries(downloads)
+}
+
+class ParallelRetryingInterpreter[T[_]: ApplicativeThrow, F[_]](implicit
+    P: Parallel.Aux[T, F],
+    F: CommutativeApplicative[F],
+) extends SequencedInterpreter[T] {
+  override def handleDownloads(downloads: List[T[String]]): T[List[String]] =
+    InterpreterOps.inParallel(InterpreterOps.retryingEach(downloads))
 }
 
 object InterpreterOps {
@@ -100,12 +107,14 @@ object InterpreterOps {
   def retrying[T[_]: ApplicativeThrow, A](fa: T[A], remaining: Int, f: Throwable => T[A]): T[A] =
     if (remaining <= 0) fa else retrying(fa.handleErrorWith(f), remaining - 1, f)
 
-  def withRetries[T[_]: ApplicativeThrow](actions: List[T[String]]): T[List[String]] = {
-    val retried = for {
-      action <- actions
-    } yield retrying(action, 3, _ => action)
-    retried.sequence
-  }
+  def withRetries[T[_]: ApplicativeThrow](actions: List[T[String]]): T[List[String]] =
+    retryingEach(actions).sequence
+
+  def retryingEach[T[_]: ApplicativeThrow](
+      actions: List[T[String]]
+  ): List[T[String]] = for {
+    action <- actions
+  } yield retrying(action, 3, _ => action)
 
   def inParallel[F[_], M[_], T[_]](actions: T[M[String]])(implicit
       P: Parallel.Aux[M, F],
