@@ -1,5 +1,6 @@
 package uk.co.odinconsultants.fp.cats.structures
 
+import cats.data.NonEmptyList
 import cats.effect.IO
 import munit.CatsEffectSuite
 import cats.implicits._
@@ -20,7 +21,7 @@ class MyFlowSpec extends CatsEffectSuite {
     val download                                      = mockCallToExternalSystem(externalSystem, _ % 2 == 1)
     val n                                             = 10
     for {
-      _ <- interpreter.handleDownloads((1 to 10).map(_ => download).toList)
+      _ <- interpreter.handleDownloads((1 to 10).map(_ => download).toList.toNel.get)
     } yield assertEquals(externalSystem.get(), 2 * n)
   }
 
@@ -30,7 +31,7 @@ class MyFlowSpec extends CatsEffectSuite {
     val externalSystem                                = new AtomicInteger(0)
     val download                                      = mockCallToExternalSystem(externalSystem, _ == 1)
     for {
-      _ <- interpreter.handleDownloads(List(download))
+      _ <- interpreter.handleDownloads(NonEmptyList.of(download))
     } yield assertEquals(externalSystem.get(), 2)
   }
 
@@ -39,7 +40,7 @@ class MyFlowSpec extends CatsEffectSuite {
       when: Int => Boolean,
   ): IO[String] = IO {
     val count = externalSystem.incrementAndGet()
-    print(s"count = $count")
+    println(s"count = $count")
     if (when(count)) throw CommandError else PASSED
   }
 }
