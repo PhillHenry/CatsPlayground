@@ -4,7 +4,7 @@ import cats.data.NonEmptyList
 import cats.effect.kernel.Sync
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.implicits._
-import cats.{Applicative, ApplicativeThrow}
+import cats.{Applicative, ApplicativeThrow, Monoid}
 
 import scala.util.control.NoStackTrace
 
@@ -18,9 +18,13 @@ case class DownloadsResult[T[_]](file: NonEmptyList[String]) extends CommandResu
 case class BuildResult[T[_]](image: String)                  extends CommandResult
 case class DeployResult[T[_]](message: String)               extends CommandResult
 
-sealed trait DownloadResult        extends CommandResult
-case class DownloadSuccessResult() extends DownloadResult
-case class DownloadFailureResult() extends DownloadResult
+object DownloadResult {
+  // TODO
+//  implicit def intAdditionMonoid[T]: Monoid[DownloadsResult[_]] = new Monoid[DownloadsResult[_]] {
+//    def empty: DownloadsResult[_]                            = DownloadsResult
+//    def combine(x: DownloadsResult, y: DownloadsResult): Int = x + y
+//  }
+}
 
 object CommandError extends NoStackTrace
 
