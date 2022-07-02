@@ -15,21 +15,21 @@ class MyFlowSpec extends CatsEffectSuite {
   test("First failure then retry succeeds in parallel") {
     // hmm, this non-deterministically fails
     import cats.effect.IO._
-    val fn: SequencedInterpreter.DownloadStrategy[IO] = InterpreterOps.retryingEach(_).parSequence
-    val interpreter                                   = new SequencedInterpreter[IO](fn)
-    val externalSystem                                = new AtomicInteger(0)
-    val download                                      = mockCallToExternalSystem(externalSystem, _ % 2 == 1)
-    val n                                             = 10
+    val fn: ApplicativeInterpreter.DownloadStrategy[IO] = InterpreterOps.retryingEach(_).parSequence
+    val interpreter                                     = new ApplicativeInterpreter[IO](fn)
+    val externalSystem                                  = new AtomicInteger(0)
+    val download                                        = mockCallToExternalSystem(externalSystem, _ % 2 == 1)
+    val n                                               = 10
     for {
       _ <- interpreter.handleDownloads((1 to 10).map(_ => download).toList.toNel.get)
     } yield assertEquals(externalSystem.get(), 2 * n)
   }
 
   test("First failure then retry succeeds") {
-    val fn: SequencedInterpreter.DownloadStrategy[IO] = withRetries(_)
-    val interpreter                                   = new SequencedInterpreter[IO](fn)
-    val externalSystem                                = new AtomicInteger(0)
-    val download                                      = mockCallToExternalSystem(externalSystem, _ == 1)
+    val fn: ApplicativeInterpreter.DownloadStrategy[IO] = withRetries(_)
+    val interpreter                                     = new ApplicativeInterpreter[IO](fn)
+    val externalSystem                                  = new AtomicInteger(0)
+    val download                                        = mockCallToExternalSystem(externalSystem, _ == 1)
     for {
       _ <- interpreter.handleDownloads(NonEmptyList.of(download))
     } yield assertEquals(externalSystem.get(), 2)

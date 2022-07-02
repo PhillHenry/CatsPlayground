@@ -72,12 +72,13 @@ abstract class Interpreter[T[_]] {
   def interpret(actions: Actions[T]): UserCommand => T[CommandResult]
 }
 
-object SequencedInterpreter {
+object ApplicativeInterpreter {
   type DownloadStrategy[T[_]] = NonEmptyList[T[String]] => T[NonEmptyList[String]]
 }
 
-class SequencedInterpreter[T[_]: Applicative](downloading: SequencedInterpreter.DownloadStrategy[T])
-    extends Interpreter[T] {
+class ApplicativeInterpreter[T[_]: Applicative](
+    downloading: ApplicativeInterpreter.DownloadStrategy[T]
+) extends Interpreter[T] {
 
   override def interpret(actions: Actions[T]): UserCommand => T[CommandResult] = {
     case DownloadCommand(urls) =>
@@ -115,10 +116,10 @@ object InterpreterOps {
 object MyFlow extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] = {
-    val prod                                          = new Prod[IO]
-    val fn: SequencedInterpreter.DownloadStrategy[IO] = _.sequence
-    val interpreter                                   = new SequencedInterpreter[IO](fn)
-    val commands                                      = List(DownloadCommand(NonEmptyList.of("x", "y", prod.BAD_URL)))
+    val prod                                            = new Prod[IO]
+    val fn: ApplicativeInterpreter.DownloadStrategy[IO] = _.sequence
+    val interpreter                                     = new ApplicativeInterpreter[IO](fn)
+    val commands                                        = List(DownloadCommand(NonEmptyList.of("x", "y", prod.BAD_URL)))
 
     execute(prod, interpreter, commands).map(_ => ExitCode.Success)
   }
