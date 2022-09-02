@@ -21,7 +21,7 @@
     <scala.version>2.13.2</scala.version>
     <scala.compat.version>2.13</scala.compat.version>
     <cats.version>2.8.0</cats.version>
-    <cats.effect.version>3.3.12</cats.effect.version>
+    <cats.effect.version>3.3.13</cats.effect.version>
     <fs2.version>3.0.6</fs2.version>
   </properties>
 
