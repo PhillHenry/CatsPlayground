@@ -20,7 +20,7 @@
     <encoding>UTF-8</encoding>
     <scala.version>2.13.2</scala.version>
     <scala.compat.version>2.13</scala.compat.version>
-    <cats.version>2.7.0</cats.version>
+    <cats.version>2.8.0</cats.version>
     <cats.effect.version>3.3.12</cats.effect.version>
     <fs2.version>3.0.6</fs2.version>
   </properties>
@@ -137,6 +137,7 @@
               </compilerPlugins>
               <args>
                 <!--<arg>-make:transitive</arg>-->
+                <arg>-deprecation</arg>
                 <arg>-Ymacro-annotations</arg>
                 <arg>-Ywarn-value-discard</arg>
 		        <arg>-Xfatal-warnings</arg>
