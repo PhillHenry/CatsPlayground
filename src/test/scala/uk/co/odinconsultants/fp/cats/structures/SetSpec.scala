@@ -1,7 +1,7 @@
 package uk.co.odinconsultants.fp.cats.structures
 
 import cats.Parallel.Aux
-import cats._
+import cats.{Applicative, _}
 import cats.data._
 import cats.kernel.CommutativeMonoid
 import cats.syntax.all._
@@ -15,6 +15,51 @@ import scala.collection.immutable.TreeSet
 
 class SetSpec extends FunSuite {
   test("traversing sets") {
+    implicit val pAu: Parallel.Aux[List, Set] = new Parallel[List] {
+
+      override def monad: Monad[List] = ???
+      override type F[x] = Set[x]
+
+      override def applicative: Applicative[Set] = ???
+      override def sequential: Set ~> List       = new (Set ~> List) {
+          override def apply[A](
+            fa: Set[A]
+        ): List[A] = fa.toList
+        }
+      override def parallel: List ~> Set         = new (List ~> Set) {
+          override def apply[A](
+            fa: List[A]
+        ): Set[A] = fa.toSet
+        }
+    }
+    implicit val commApp = new CommutativeApplicative[Set] {
+      override def pure[A](x: A): Set[A]                                         = Set(x)
+      override def ap[A, B](ff: Set[A => B])(fa: Set[A]): Set[B] = for {
+        a <- fa
+        f <- ff
+      } yield f(a)
+    }
+    implicit val trav = new UnorderedTraverse[Set] {
+      override def unorderedTraverse[G[_]: CommutativeApplicative, A, B](sa: Set[A])(
+          f: A => G[B]
+      ): G[Set[B]] = {
+        val xs: Set[G[B]] = sa.map(f)
+        val g             = CommutativeApplicative[G].point(sa)
+        var x : G[Set[B]] = CommutativeApplicative[G].unit.asInstanceOf[G[Set[B]]]
+        xs.foreach{ gb =>
+          println(s"x = $x, gb = $gb")
+          x *> gb
+        }
+        x
+      }
+      override def unorderedFoldMap[A, B: CommutativeMonoid](fa: Set[A])(f: A => B): B =
+        CommutativeMonoid[B].combineAll(fa.map(f))
+    }
+    val xs                                                                                         = Set(1, 2, 3)
+    val result: Seq[Set[Int]] = xs.parUnorderedTraverse(x => List(x))
+    print(result)
+  }
+  test("traversing non empty sets") {
     val set = SortedSet(1,2,3)
     val nesOpt: Option[NonEmptySet[Int]] = NonEmptySetImpl.fromSet(set)
     nesOpt.flatMap { (nes: NonEmptySet[Int]) =>
