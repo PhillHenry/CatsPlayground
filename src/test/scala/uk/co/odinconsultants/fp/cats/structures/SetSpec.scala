@@ -43,14 +43,17 @@ class SetSpec extends FunSuite {
       override def unorderedTraverse[G[_]: CommutativeApplicative, A, B](sa: Set[A])(
           f: A => G[B]
       ): G[Set[B]] = {
+        val alo                   = Applicative[G].compose[Set]
+        val x: G[Set[(Int, Int)]] = alo.product(Applicative[G].pure(Set(1)), Applicative[G].pure(Set(2)))
+
         val xs: Set[G[B]] = sa.map(f)
-        val g             = CommutativeApplicative[G].point(sa)
-        var x : G[Set[B]] = CommutativeApplicative[G].unit.asInstanceOf[G[Set[B]]]
-        xs.foreach{ gb =>
-          println(s"x = $x, gb = $gb")
-          x *> gb
+        var g : G[Set[B]] = Applicative[G].pure(Set[B]())
+
+        xs.foreach { gb: G[B] =>
+          g = g.map2(gb) { (b1, b2) => b1.+(b2) }
         }
-        x
+
+        g // TODO
       }
       override def unorderedFoldMap[A, B: CommutativeMonoid](fa: Set[A])(f: A => B): B =
         CommutativeMonoid[B].combineAll(fa.map(f))
