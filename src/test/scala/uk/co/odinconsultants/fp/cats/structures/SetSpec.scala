@@ -44,13 +44,13 @@ class SetSpec extends FunSuite {
           f: A => G[B]
       ): G[Set[B]] = {
         val xs: Set[G[B]] = sa.map(f)
-        var g : G[Set[B]] = Applicative[G].pure(Set[B]())
+        var g : G[Set[B]] = Applicative[G].pure(Set.empty[B])
 
         xs.foreach { gb: G[B] =>
-          g = g.map2(gb) { (b1, b2) => b1.+(b2) }
+          g = g.map2(gb) { (setB, b) => setB + b }
         }
 
-        g // TODO
+        g // foreach is yucky but works. I note there are similar uses of var in Cats itself
       }
       override def unorderedFoldMap[A, B: CommutativeMonoid](fa: Set[A])(f: A => B): B =
         CommutativeMonoid[B].combineAll(fa.map(f))
