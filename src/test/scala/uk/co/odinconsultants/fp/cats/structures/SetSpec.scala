@@ -43,9 +43,6 @@ class SetSpec extends FunSuite {
       override def unorderedTraverse[G[_]: CommutativeApplicative, A, B](sa: Set[A])(
           f: A => G[B]
       ): G[Set[B]] = {
-        val alo                   = Applicative[G].compose[Set]
-        val x: G[Set[(Int, Int)]] = alo.product(Applicative[G].pure(Set(1)), Applicative[G].pure(Set(2)))
-
         val xs: Set[G[B]] = sa.map(f)
         var g : G[Set[B]] = Applicative[G].pure(Set[B]())
 
@@ -59,7 +56,7 @@ class SetSpec extends FunSuite {
         CommutativeMonoid[B].combineAll(fa.map(f))
     }
     val xs                                                                                         = Set(1, 2, 3)
-    val result: Seq[Set[Int]] = xs.parUnorderedTraverse(x => List(x))
+    val result: List[Set[Int]] = xs.parUnorderedTraverse(x => List(x))
     print(result)
   }
   test("traversing non empty sets") {
