@@ -1,16 +1,12 @@
 package uk.co.odinconsultants.fp.cats.structures
 
-import cats.Parallel.Aux
-import cats.{Applicative, _}
 import cats.data._
 import cats.kernel.CommutativeMonoid
 import cats.syntax.all._
-import cats.syntax.set._
-import munit.{CatsEffectSuite, FunSuite}
+import cats.{Applicative, _}
+import munit.FunSuite
 
-import java.util
 import scala.collection.immutable.SortedSet
-import scala.collection.immutable.TreeSet
 
 
 class SetSpec extends FunSuite {
