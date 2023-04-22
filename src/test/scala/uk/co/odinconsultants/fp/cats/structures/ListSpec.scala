@@ -35,13 +35,13 @@ class ListSpec extends FunSuite {
         ): Set[A] = fa.toSet
       }
     }
-    implicit val commApp = new CommutativeApplicative[Set] {
-      override def pure[A](x: A): Set[A]                         = Set(x)
-      override def ap[A, B](ff: Set[A => B])(fa: Set[A]): Set[B] = for {
-        a <- fa
-        f <- ff
-      } yield f(a)
-    }
+//    implicit val commApp = new CommutativeApplicative[Set] {
+//      override def pure[A](x: A): Set[A]                         = Set(x)
+//      override def ap[A, B](ff: Set[A => B])(fa: Set[A]): Set[B] = for {
+//        a <- fa
+//        f <- ff
+//      } yield f(a)
+//    }
 
     val listOfSetInts = List(Set(1, 2, 3), Set(4, 5, 6))
     val result3       = listOfSetInts.parTraverse(x => List(x))
