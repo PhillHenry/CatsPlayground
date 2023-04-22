@@ -32,6 +32,23 @@ class SetSpec extends FunSuite {
         ): Set[A] = fa.toSet
         }
     }
+    implicit val pAuSet: Parallel.Aux[Set, Set] = new Parallel[Set] {
+
+      override def monad: Monad[Set] = ???
+      override type F[x] = Set[x]
+
+      override def applicative: Applicative[Set] = ???
+      override def sequential: Set ~> Set       = new (Set ~> Set) {
+          override def apply[A](
+            fa: Set[A]
+        ): Set[A] = fa
+        }
+      override def parallel: Set ~> Set         = new (Set ~> Set) {
+          override def apply[A](
+            fa: Set[A]
+        ): Set[A] = fa
+        }
+    }
     implicit val commApp = new CommutativeApplicative[Set] {
       override def pure[A](x: A): Set[A]                                         = Set(x)
       override def ap[A, B](ff: Set[A => B])(fa: Set[A]): Set[B] = for {
