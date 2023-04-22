@@ -16,14 +16,14 @@ class ListSpec extends FunSuite {
       override type F[x] = Set[x]
 
       override def applicative: Applicative[Set] = new Applicative[Set] {
-          override def pure[A](x: A): Set[A] = Set(x)
-          override def ap[A, B](ff: Set[A => B])(
+        override def pure[A](x: A): Set[A] = Set(x)
+        override def ap[A, B](ff: Set[A => B])(
             fa: Set[A]
         ): Set[B] = for {
-            fn <- ff
-            a <- fa
-          } yield fn(a)
-        }
+          fn <- ff
+          a  <- fa
+        } yield fn(a)
+      }
       override def sequential: Set ~> List       = new (Set ~> List) {
         override def apply[A](
             fa: Set[A]
@@ -35,7 +35,7 @@ class ListSpec extends FunSuite {
         ): Set[A] = fa.toSet
       }
     }
-    implicit val commApp        = new CommutativeApplicative[Set] {
+    implicit val commApp = new CommutativeApplicative[Set] {
       override def pure[A](x: A): Set[A]                         = Set(x)
       override def ap[A, B](ff: Set[A => B])(fa: Set[A]): Set[B] = for {
         a <- fa
@@ -43,8 +43,8 @@ class ListSpec extends FunSuite {
       } yield f(a)
     }
 
-    val listOfSetInts           = List(Set(1,2,3), Set(4,5,6))
-    val result3  = listOfSetInts.parTraverse(x => List(x))
+    val listOfSetInts = List(Set(1, 2, 3), Set(4, 5, 6))
+    val result3       = listOfSetInts.parTraverse(x => List(x))
     println(result3)
   }
 }
