@@ -34,22 +34,7 @@ class SetSpec extends FunSuite {
         f <- ff
       } yield f(a)
     }
-//    implicit val trav = new UnorderedTraverse[Set] {
-//      override def unorderedTraverse[G[_]: CommutativeApplicative, A, B](sa: Set[A])(
-//          f: A => G[B]
-//      ): G[Set[B]] = {
-//        val xs: Set[G[B]] = sa.map(f)
-//        var g : G[Set[B]] = Applicative[G].pure(Set.empty[B])
-//
-//        xs.foreach { gb: G[B] =>
-//          g = g.map2(gb) { (setB, b) => setB + b }
-//        }
-//
-//        g // foreach is yucky but works. I note there are similar uses of var in Cats itself
-//      }
-//      override def unorderedFoldMap[A, B: CommutativeMonoid](fa: Set[A])(f: A => B): B =
-//        CommutativeMonoid[B].combineAll(fa.map(f))
-//    }
+
     val setOfInts               = Set(1, 2, 3)
     val setOfListOfInts         = Set(List(1, 2, 3), List(4, 5, 6))
     val result: List[Set[Int]]  = setOfInts.parUnorderedTraverse(x => List(x))
