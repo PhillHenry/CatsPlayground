@@ -15,7 +15,11 @@ class SetTraverseSpec extends FunSuite {
         var g: G[Set[B]]  = Applicative[G].pure(Set.empty[B])
 
         xs.foreach { gb: G[B] =>
-          g = g.map2(gb)((setB, b) => setB + b)
+          println(s"gb = ${gb}, g = ${g}")
+//          g = g.map2(gb)((setB, b) => setB + b)
+          gb.map { set =>
+            g = g.map(_ + set)
+          }
         }
 
         g // foreach is yucky but works. I note there are similar uses of var in Cats itself
@@ -36,5 +40,6 @@ class SetTraverseSpec extends FunSuite {
     implicit val aux = ListSpec.pAu
     val results2    = setOfLists.parUnorderedSequence //(x => List(x))
     println(results2)
+    assertEquals(results2, List(Set(1,2,3,4,5,6,7)))
   }
 }
